@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prépa Physique - Élite</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --text-muted: #aaaaaa;
+            --accent-orange: #ff9800;
+            --success-green: #4caf50;
+            --fail-red: #f44336;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .date-sub {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        /* Cartes d'exercices */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .card.mandatory {
+            border-left-color: var(--accent-orange);
+        }
+
+        .card.activity {
+            border-left-color: #2196f3;
+        }
+
+        .card.completed {
+            border-left-color: var(--success-green);
+            opacity: 0.7;
+        }
+
+        .card-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+        }
+
+        .card-info p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Bouton à cocher moderne */
+        .checkbox-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--text-muted);
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .card.mandatory .checkbox-btn {
+            border-color: var(--accent-orange);
+        }
+
+        .card.completed .checkbox-btn {
+            background-color: var(--success-green);
+            border-color: var(--success-green);
+        }
+
+        .checkbox-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: white;
+            stroke-width: 3;
+            display: none;
+        }
+
+        .card.completed .checkbox-btn svg {
+            display: block;
+        }
+
+        /* Calendrier de suivi */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 16px;
+            margin-top: 10px;
+        }
+
+        .calendar-day-label {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background-color: #2d2d2d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .calendar-day.success { background-color: var(--success-green); }
+        .calendar-day.fail { background-color: var(--fail-red); }
+        .calendar-day.repos { background-color: #444444; color: var(--text-muted); }
+
+        .notif-btn {
+            width: 100%;
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Ma Prépa Physique</h1>
+    <div class="date-sub" id="current-date">Chargement de la date...</div>
+
+    <button class="notif-btn" id="enable-notif">Activer les Notifications de Suivi</button>
+
+    <div class="section-title">Objectifs du Jour</div>
+    <div id="tasks-container"></div>
+
+    <div class="section-title" style="margin-top: 30px;">Suivi de la Semaine</div>
+    <div class="calendar-grid" id="calendar-grid"></div>
+</div>
+
+<script>
+    // 1. Programme de la semaine fixé par le grand frère
+    const weeklyProgram = {
+        1: { mandatory: ["Renfo"], activity: "Activité libre (Foot/Vélo...)" }, // Lundi
+        2: { mandatory: ["HIIT"], activity: "Activité libre (Foot/Vélo...)" },  // Mardi
+        3: { mandatory: ["Cardio", "Renfo"], activity: null },                  // Mercredi (Double séance !)
+        4: { mandatory: ["HIIT"], activity: "Activité libre (Foot/Vélo...)" },  // Jeudi
+        5: { mandatory: ["Cardio"], activity: "Activité libre (Foot/Vélo...)" },// Vendredi
+        6: { mandatory: ["Renfo"], activity: null },                            // Samedi
+        0: { mandatory: [], activity: null }                                    // Dimanche (Repos)
+    };
+
+    const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+    const now = new Date();
+    const currentDayOfWeek = now.getDay();
+
+    // Affichage de la date
+    const options = { weekday: 'long', day: 'numeric', month: 'long' };
+    document.getElementById('current-date').innerText = now.toLocaleDateString('fr-FR', options);
+
+    // Initialisation du stockage local
+    const todayKey = now.toISOString().split('T')[0];
+    let trackingData = JSON.parse(localStorage.getItem('prepa_tracking')) || {};
+    if (!trackingData[todayKey]) {
+        trackingData[todayKey] = { completed: [] };
+    }
+
+    // Sauvegarde automatique à 21h en cas d'oubli (Provisoire)
+    function checkAutomaticFailure() {
+        if (now.getHours() >= 21) {
+            const todayProg = weeklyProgram[currentDayOfWeek];
+            if (todayProg.mandatory.length > 0 && trackingData[todayKey].completed.length < todayProg.mandatory.length) {
+                // Marqué comme manqué provisoirement si vide
+                if (!trackingData[todayKey].status) trackingData[todayKey].status = "fail";
+            }
+        }
+        localStorage.setItem('prepa_tracking', JSON.stringify(trackingData));
+    }
+    checkAutomaticFailure();
+
+    // Génération des cartes de tâches du jour
+    const todayProg = weeklyProgram[currentDayOfWeek];
+    const container = document.getElementById('tasks-container');
+
+    if (todayProg.mandatory.length === 0 && !todayProg.activity) {
+        container.innerHTML = `<div class="card" style="border-left-color: #444"><div class="card-info"><h3>Repos total</h3><p>Profite pour bien récupérer !</p></div></div>`;
+    } else {
+        // Tâches obligatoires (Renfo, HIIT, Cardio)
+        todayProg.mandatory.forEach(type => {
+            const isDone = trackingData[todayKey].completed.includes(type);
+            const card = document.createElement('div');
+            card.className = `card mandatory ${isDone ? 'completed' : ''}`;
+            card.innerHTML = `
+                <div class="card-info">
+                    <h3>${type}</h3>
+                    <p>Séance obligatoire avec rappels actifs</p>
+                </div>
+                <button class="checkbox-btn" onclick="toggleTask('${type}', this)">
+                    <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" stroke="white" fill="none"/></svg>
+                </button>
+            `;
+            container.appendChild(card);
+        });
+
+        // Activité Libre (sans notification)
+        if (todayProg.activity) {
+            const isActivityDone = trackingData[todayKey].activityDone || false;
+            const card = document.createElement('div');
+            card.className = `card activity ${isActivityDone ? 'completed' : ''}`;
+            card.innerHTML = `
+                <div class="card-info">
+                    <h3>${todayProg.activity}</h3>
+                    <p>Optionnel (Pas de relances)</p>
+                </div>
+                <button class="checkbox-btn" onclick="toggleActivity(this)">
+                    <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" stroke="white" fill="none"/></svg>
+                </button>
+            `;
+            container.appendChild(card);
+        }
+    }
+
+    // Gestion du clic Tâche Obligatoire
+    window.toggleTask = function(type, btn) {
+        const card = btn.parentElement;
+        if (card.classList.contains('completed')) {
+            card.classList.remove('completed');
+            trackingData[todayKey].completed = trackingData[todayKey].completed.filter(t => t !== type);
+        } else {
+            card.classList.add('completed');
+            if (!trackingData[todayKey].completed.includes(type)) trackingData[todayKey].completed.push(type);
+        }
+        
+        // Ajustement du statut du jour
+        if (trackingData[todayKey].completed.length === todayProg.mandatory.length) {
+            trackingData[todayKey].status = "success";
+        } else if (now.getHours() >= 21) {
+            trackingData[todayKey].status = "fail"; // Reste ou repasse en échec provisoire s'il en manque après 21h
+        } else {
+            delete trackingData[todayKey].status;
+        }
+        
+        localStorage.setItem('prepa_tracking', JSON.stringify(trackingData));
+        buildCalendar();
+    };
+
+    // Gestion du clic Activité Libre
+    window.toggleActivity = function(btn) {
+        const card = btn.parentElement;
+        card.classList.toggle('completed');
+        trackingData[todayKey].activityDone = card.classList.contains('completed');
+        localStorage.setItem('prepa_tracking', JSON.stringify(trackingData));
+    };
+
+    // Construction visuelle du calendrier du haut
+    function buildCalendar() {
+        const grid = document.getElementById('calendar-grid');
+        grid.innerHTML = "";
+        
+        // Labels des jours
+        dayNames.forEach(name => {
+            const lbl = document.createElement('div');
+            lbl.className = 'calendar-day-label';
+            lbl.innerText = name;
+            grid.appendChild(lbl);
+        });
+
+        // Affichage des 7 derniers jours glissants
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(now.getDate() - i);
+            const k = d.toISOString().split('T')[0];
+            const dayOfWeek = d.getDay();
+            
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'calendar-day';
+            dayDiv.innerText = d.getDate();
+
+            if (weeklyProgram[dayOfWeek].mandatory.length === 0) {
+                dayDiv.classList.add('repos');
+            } else if (trackingData[k]) {
+                if (trackingData[k].status === "success") dayDiv.classList.add('success');
+                if (trackingData[k].status === "fail") dayDiv.classList.add('fail');
+            }
+            grid.appendChild(dayDiv);
+        }
+    }
+    buildCalendar();
+
+    // Demande d'activation du Service Worker pour les notifications
+    document.getElementById('enable-notif').addEventListener('click', () => {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    alert("Notifications configurées avec succès !");
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>
