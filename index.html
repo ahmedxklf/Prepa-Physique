@@ -2,21 +2,32 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <!-- Mode App autonome (PWA) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121212">
+
+    <!-- Lien vers le fichier look de l'icône -->
+    <link rel="manifest" href="manifest.json">
+
     <title>Prépa Physique - Élite</title>
     <style>
         :root {
             --bg-color: #121212;
-            --card-bg: #1e1e1e;
+            --card-bg: #1a1a1a;
             --text-color: #ffffff;
-            --text-muted: #aaaaaa;
+            --text-muted: #777777;
             --accent-orange: #ff9800;
             --success-green: #4caf50;
             --fail-red: #f44336;
+            --blue-activity: #2196f3;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -24,88 +35,99 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
             width: 100%;
-            max-width: 450px;
+            max-width: 420px;
         }
 
         h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-            font-weight: 700;
+            font-size: 28px;
+            margin: 15px 0 5px 0;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
         .date-sub {
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 15px;
             margin-bottom: 25px;
+            font-weight: 500;
         }
 
         .section-title {
-            font-size: 14px;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             color: var(--text-muted);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-weight: 700;
         }
 
-        /* Cartes d'exercices */
+        /* Cartes d'objectifs */
         .card {
             background-color: var(--card-bg);
-            border-radius: 16px;
+            border-radius: 18px;
             padding: 20px;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-left: 5px solid var(--text-muted);
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid #252525;
+            position: relative;
         }
 
-        .card.mandatory {
-            border-left-color: var(--accent-orange);
+        .card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            border-radius: 18px 0 0 18px;
         }
 
-        .card.activity {
-            border-left-color: #2196f3;
-        }
-
+        .card.mandatory::before { background-color: var(--accent-orange); }
+        .card.activity::before { background-color: var(--blue-activity); }
+        .card.completed::before { background-color: var(--success-green); }
+        
         .card.completed {
-            border-left-color: var(--success-green);
-            opacity: 0.7;
+            background-color: #141414;
+            border-color: #1c1c1c;
+            opacity: 0.6;
         }
 
         .card-info h3 {
-            margin: 0 0 5px 0;
-            font-size: 18px;
+            margin: 0 0 4px 0;
+            font-size: 19px;
+            font-weight: 700;
         }
 
         .card-info p {
             margin: 0;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
         }
 
-        /* Bouton à cocher moderne */
+        /* Cases à cocher ajustées au pouce */
         .checkbox-btn {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            border: 2px solid var(--text-muted);
+            border: 2px solid #333333;
             background: transparent;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .card.mandatory .checkbox-btn {
-            border-color: var(--accent-orange);
-        }
-
+        .card.mandatory .checkbox-btn { border-color: var(--accent-orange); }
+        .card.activity .checkbox-btn { border-color: var(--blue-activity); }
         .card.completed .checkbox-btn {
             background-color: var(--success-green);
             border-color: var(--success-green);
@@ -116,58 +138,73 @@
             height: 20px;
             fill: none;
             stroke: white;
-            stroke-width: 3;
+            stroke-width: 4;
             display: none;
         }
 
-        .card.completed .checkbox-btn svg {
-            display: block;
+        .card.completed .checkbox-btn svg { display: block; }
+
+        /* Calendrier Dynamique Réparé */
+        .calendar-grid {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--card-bg);
+            padding: 16px;
+            border-radius: 18px;
+            border: 1px solid #252525;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
-        /* Calendrier de suivi */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            background-color: var(--card-bg);
-            padding: 15px;
-            border-radius: 16px;
-            margin-top: 10px;
+        .calendar-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            flex: 1;
         }
 
         .calendar-day-label {
-            text-align: center;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
         .calendar-day {
-            aspect-ratio: 1;
-            border-radius: 8px;
-            background-color: #2d2d2d;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #262626;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            position: relative;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .calendar-cell:active .calendar-day {
+            transform: scale(0.9);
         }
 
         .calendar-day.success { background-color: var(--success-green); }
         .calendar-day.fail { background-color: var(--fail-red); }
-        .calendar-day.repos { background-color: #444444; color: var(--text-muted); }
+        .calendar-day.repos { background-color: #333333; color: #666666; }
+        .calendar-day.current { border-color: var(--accent-orange); }
 
         .notif-btn {
             width: 100%;
-            background-color: var(--accent-orange);
+            background: linear-gradient(135deg, var(--accent-orange), #f4511e);
             color: white;
             border: none;
-            padding: 15px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 16px;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 15px;
             margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.2);
             cursor: pointer;
         }
     </style>
@@ -176,50 +213,45 @@
 
 <div class="container">
     <h1>Ma Prépa Physique</h1>
-    <div class="date-sub" id="current-date">Chargement de la date...</div>
+    <div class="date-sub" id="current-date">Chargement...</div>
 
-    <button class="notif-btn" id="enable-notif">Activer les Notifications de Suivi</button>
+    <button class="notif-btn" id="enable-notif">🔔 Activer les Rappels de Suivi</button>
 
     <div class="section-title">Objectifs du Jour</div>
     <div id="tasks-container"></div>
 
-    <div class="section-title" style="margin-top: 30px;">Suivi de la Semaine</div>
+    <div class="section-title" style="margin-top: 30px;">Historique (Clique sur un jour)</div>
     <div class="calendar-grid" id="calendar-grid"></div>
 </div>
 
 <script>
-    // 1. Programme de la semaine fixé par le grand frère
     const weeklyProgram = {
-        1: { mandatory: ["Renfo"], activity: "Activité libre (Foot/Vélo...)" }, // Lundi
-        2: { mandatory: ["HIIT"], activity: "Activité libre (Foot/Vélo...)" },  // Mardi
-        3: { mandatory: ["Cardio", "Renfo"], activity: null },                  // Mercredi (Double séance !)
-        4: { mandatory: ["HIIT"], activity: "Activité libre (Foot/Vélo...)" },  // Jeudi
-        5: { mandatory: ["Cardio"], activity: "Activité libre (Foot/Vélo...)" },// Vendredi
-        6: { mandatory: ["Renfo"], activity: null },                            // Samedi
-        0: { mandatory: [], activity: null }                                    // Dimanche (Repos)
+        1: { mandatory: ["Renfo"], activity: "Activité libre" },
+        2: { mandatory: ["HIIT"], activity: "Activité libre" },
+        3: { mandatory: ["Cardio", "Renfo"], activity: null },
+        4: { mandatory: ["HIIT"], activity: "Activité libre" },
+        5: { mandatory: ["Cardio"], activity: "Activité libre" },
+        6: { mandatory: ["Renfo"], activity: null },
+        0: { mandatory: [], activity: null }
     };
 
     const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
     const now = new Date();
     const currentDayOfWeek = now.getDay();
 
-    // Affichage de la date
     const options = { weekday: 'long', day: 'numeric', month: 'long' };
     document.getElementById('current-date').innerText = now.toLocaleDateString('fr-FR', options);
 
-    // Initialisation du stockage local
     const todayKey = now.toISOString().split('T')[0];
     let trackingData = JSON.parse(localStorage.getItem('prepa_tracking')) || {};
     if (!trackingData[todayKey]) {
         trackingData[todayKey] = { completed: [] };
     }
 
-    // Sauvegarde automatique à 21h en cas d'oubli (Provisoire)
     function checkAutomaticFailure() {
         if (now.getHours() >= 21) {
             const todayProg = weeklyProgram[currentDayOfWeek];
             if (todayProg.mandatory.length > 0 && trackingData[todayKey].completed.length < todayProg.mandatory.length) {
-                // Marqué comme manqué provisoirement si vide
                 if (!trackingData[todayKey].status) trackingData[todayKey].status = "fail";
             }
         }
@@ -227,14 +259,12 @@
     }
     checkAutomaticFailure();
 
-    // Génération des cartes de tâches du jour
     const todayProg = weeklyProgram[currentDayOfWeek];
     const container = document.getElementById('tasks-container');
 
     if (todayProg.mandatory.length === 0 && !todayProg.activity) {
         container.innerHTML = `<div class="card" style="border-left-color: #444"><div class="card-info"><h3>Repos total</h3><p>Profite pour bien récupérer !</p></div></div>`;
     } else {
-        // Tâches obligatoires (Renfo, HIIT, Cardio)
         todayProg.mandatory.forEach(type => {
             const isDone = trackingData[todayKey].completed.includes(type);
             const card = document.createElement('div');
@@ -251,7 +281,6 @@
             container.appendChild(card);
         });
 
-        // Activité Libre (sans notification)
         if (todayProg.activity) {
             const isActivityDone = trackingData[todayKey].activityDone || false;
             const card = document.createElement('div');
@@ -259,7 +288,7 @@
             card.innerHTML = `
                 <div class="card-info">
                     <h3>${todayProg.activity}</h3>
-                    <p>Optionnel (Pas de relances)</p>
+                    <p>Optionnel (Foot/Vélo...)</p>
                 </div>
                 <button class="checkbox-btn" onclick="toggleActivity(this)">
                     <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" stroke="white" fill="none"/></svg>
@@ -269,7 +298,6 @@
         }
     }
 
-    // Gestion du clic Tâche Obligatoire
     window.toggleTask = function(type, btn) {
         const card = btn.parentElement;
         if (card.classList.contains('completed')) {
@@ -280,11 +308,10 @@
             if (!trackingData[todayKey].completed.includes(type)) trackingData[todayKey].completed.push(type);
         }
         
-        // Ajustement du statut du jour
         if (trackingData[todayKey].completed.length === todayProg.mandatory.length) {
             trackingData[todayKey].status = "success";
         } else if (now.getHours() >= 21) {
-            trackingData[todayKey].status = "fail"; // Reste ou repasse en échec provisoire s'il en manque après 21h
+            trackingData[todayKey].status = "fail";
         } else {
             delete trackingData[todayKey].status;
         }
@@ -293,7 +320,6 @@
         buildCalendar();
     };
 
-    // Gestion du clic Activité Libre
     window.toggleActivity = function(btn) {
         const card = btn.parentElement;
         card.classList.toggle('completed');
@@ -301,47 +327,65 @@
         localStorage.setItem('prepa_tracking', JSON.stringify(trackingData));
     };
 
-    // Construction visuelle du calendrier du haut
+    // Construction du calendrier avec alignement parfait et pop-up d'informations
     function buildCalendar() {
         const grid = document.getElementById('calendar-grid');
         grid.innerHTML = "";
-        
-        // Labels des jours
-        dayNames.forEach(name => {
-            const lbl = document.createElement('div');
-            lbl.className = 'calendar-day-label';
-            lbl.innerText = name;
-            grid.appendChild(lbl);
-        });
 
-        // Affichage des 7 derniers jours glissants
         for (let i = 6; i >= 0; i--) {
             const d = new Date();
             d.setDate(now.getDate() - i);
             const k = d.toISOString().split('T')[0];
             const dayOfWeek = d.getDay();
             
+            const cell = document.createElement('div');
+            cell.className = 'calendar-cell';
+            
+            const label = document.createElement('div');
+            label.className = 'calendar-day-label';
+            label.innerText = dayNames[dayOfWeek];
+            
             const dayDiv = document.createElement('div');
             dayDiv.className = 'calendar-day';
             dayDiv.innerText = d.getDate();
 
-            if (weeklyProgram[dayOfWeek].mandatory.length === 0) {
+            if (i === 0) dayDiv.classList.add('current');
+
+            const dayProg = weeklyProgram[dayOfWeek];
+            const hasWorkout = dayProg.mandatory.length > 0;
+
+            if (!hasWorkout) {
                 dayDiv.classList.add('repos');
             } else if (trackingData[k]) {
                 if (trackingData[k].status === "success") dayDiv.classList.add('success');
                 if (trackingData[k].status === "fail") dayDiv.classList.add('fail');
             }
-            grid.appendChild(dayDiv);
+
+            // Clic interactif pour inspecter le programme du jour choisi
+            cell.onclick = () => {
+                const progText = hasWorkout ? dayProg.mandatory.join(' + ') : "Repos total";
+                const actText = dayProg.activity ? ` (+ ${dayProg.activity})` : "";
+                let stateText = "Non effectué";
+                
+                if (!hasWorkout) stateText = "Détente !";
+                else if (trackingData[k] && trackingData[k].status === "success") stateText = "Validé ! 💪";
+                else if (trackingData[k] && trackingData[k].status === "fail") stateText = "Manqué ❌";
+
+                alert(`📅 ${dayNames[dayOfWeek]} ${d.getDate()} Juin\n\n🎯 Programme : ${progText}${actText}\n📊 Statut : ${stateText}`);
+            };
+
+            cell.appendChild(label);
+            cell.appendChild(dayDiv);
+            grid.appendChild(cell);
         }
     }
     buildCalendar();
 
-    // Demande d'activation du Service Worker pour les notifications
     document.getElementById('enable-notif').addEventListener('click', () => {
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
                 navigator.serviceWorker.register('sw.js').then(reg => {
-                    alert("Notifications configurées avec succès !");
+                    alert("Rappels activés avec succès !");
                 });
             }
         });
