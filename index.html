@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     
-    <!-- Mode App autonome (PWA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
 
-    <!-- Lien vers le fichier look de l'icône -->
     <link rel="manifest" href="manifest.json">
 
     <title>Prépa Physique - Élite</title>
@@ -21,9 +19,9 @@
             --text-color: #ffffff;
             --text-muted: #777777;
             --accent-orange: #ff9800;
-            --success-green: #4caf50;
-            --fail-red: #f44336;
-            --blue-activity: #2196f3;
+            --success-green: #2e7d32;
+            --fail-red: #c62828;
+            --blue-activity: #1565c0;
         }
 
         body {
@@ -44,8 +42,8 @@
         }
 
         h1 {
-            font-size: 28px;
-            margin: 15px 0 5px 0;
+            font-size: 26px;
+            margin: 10px 0 5px 0;
             font-weight: 800;
             letter-spacing: -0.5px;
         }
@@ -66,7 +64,6 @@
             font-weight: 700;
         }
 
-        /* Cartes d'objectifs */
         .card {
             background-color: var(--card-bg);
             border-radius: 18px;
@@ -92,12 +89,12 @@
 
         .card.mandatory::before { background-color: var(--accent-orange); }
         .card.activity::before { background-color: var(--blue-activity); }
-        .card.completed::before { background-color: var(--success-green); }
+        .card.completed::before { background-color: #4caf50; }
         
         .card.completed {
             background-color: #141414;
             border-color: #1c1c1c;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .card-info h3 {
@@ -112,10 +109,9 @@
             color: var(--text-muted);
         }
 
-        /* Cases à cocher ajustées au pouce */
         .checkbox-btn {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             border: 2px solid #333333;
             background: transparent;
@@ -123,14 +119,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
         }
 
         .card.mandatory .checkbox-btn { border-color: var(--accent-orange); }
         .card.activity .checkbox-btn { border-color: var(--blue-activity); }
         .card.completed .checkbox-btn {
-            background-color: var(--success-green);
-            border-color: var(--success-green);
+            background-color: #4caf50;
+            border-color: #4caf50;
         }
 
         .checkbox-btn svg {
@@ -144,55 +140,101 @@
 
         .card.completed .checkbox-btn svg { display: block; }
 
-        /* Calendrier Dynamique Réparé */
-        .calendar-grid {
-            display: flex;
-            justify-content: space-between;
+        .calendar-container {
             background-color: var(--card-bg);
+            border-radius: 20px;
             padding: 16px;
-            border-radius: 18px;
             border: 1px solid #252525;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
-        .calendar-cell {
+        .calendar-header {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            cursor: pointer;
-            flex: 1;
+            margin-bottom: 15px;
+            padding: 0 5px;
         }
 
-        .calendar-day-label {
+        .calendar-header month {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+
+        .nav-btn {
+            background: #262626;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .weekday-label {
+            text-align: center;
             font-size: 11px;
             color: var(--text-muted);
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             text-transform: uppercase;
         }
 
-        .calendar-day {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-color: #262626;
+        .day-cell {
+            background-color: #222;
+            border-radius: 10px;
+            aspect-ratio: 1 / 1.1;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            transition: all 0.2s ease;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px;
+            box-sizing: border-box;
+            cursor: pointer;
+            position: relative;
             border: 1px solid transparent;
         }
 
-        .calendar-cell:active .calendar-day {
-            transform: scale(0.9);
+        .day-cell.empty {
+            background-color: transparent;
+            cursor: default;
         }
 
-        .calendar-day.success { background-color: var(--success-green); }
-        .calendar-day.fail { background-color: var(--fail-red); }
-        .calendar-day.repos { background-color: #333333; color: #666666; }
-        .calendar-day.current { border-color: var(--accent-orange); }
+        .day-num {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .day-workout {
+            font-size: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+
+        .day-cell.success { background-color: var(--success-green); }
+        .day-cell.success .day-workout { color: #a5d6a7; }
+        
+        .day-cell.fail { background-color: var(--fail-red); }
+        .day-cell.fail .day-workout { color: #ef9a9a; }
+        
+        .day-cell.repos { background-color: #2d2d2d; }
+        .day-cell.repos .day-num { color: #555; }
+        .day-cell.repos .day-workout { color: #444; }
+
+        .day-cell.today {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 8px rgba(255, 152, 0, 0.4);
+        }
 
         .notif-btn {
             width: 100%;
@@ -204,7 +246,6 @@
             font-weight: 700;
             font-size: 15px;
             margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.2);
             cursor: pointer;
         }
     </style>
@@ -215,42 +256,52 @@
     <h1>Ma Prépa Physique</h1>
     <div class="date-sub" id="current-date">Chargement...</div>
 
-    <button class="notif-btn" id="enable-notif">🔔 Activer les Rappels de Suivi</button>
+    <button class="notif-btn" id="enable-notif">🔔 Configurer & Activer la synchro des Rappels</button>
 
     <div class="section-title">Objectifs du Jour</div>
     <div id="tasks-container"></div>
 
-    <div class="section-title" style="margin-top: 30px;">Historique (Clique sur un jour)</div>
-    <div class="calendar-grid" id="calendar-grid"></div>
+    <div class="section-title" style="margin-top: 25px;">Calendrier de Suivi Historique</div>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <button class="nav-btn" onclick="changeMonth(-1)">◀</button>
+            <month id="calendar-month-year"></month>
+            <button class="nav-btn" onclick="changeMonth(1)">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid-target"></div>
+    </div>
 </div>
 
 <script>
     const weeklyProgram = {
-        1: { mandatory: ["Renfo"], activity: "Activité libre" },
-        2: { mandatory: ["HIIT"], activity: "Activité libre" },
+        1: { mandatory: ["Renfo"], activity: "Activité" },
+        2: { mandatory: ["HIIT"], activity: "Activité" },
         3: { mandatory: ["Cardio", "Renfo"], activity: null },
-        4: { mandatory: ["HIIT"], activity: "Activité libre" },
-        5: { mandatory: ["Cardio"], activity: "Activité libre" },
+        4: { mandatory: ["HIIT"], activity: "Activité" },
+        5: { mandatory: ["Cardio"], activity: "Activité" },
         6: { mandatory: ["Renfo"], activity: null },
         0: { mandatory: [], activity: null }
     };
 
     const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-    const now = new Date();
-    const currentDayOfWeek = now.getDay();
+    const monthNames = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+    
+    const today = new Date();
+    let currentViewYear = today.getFullYear();
+    let currentViewMonth = today.getMonth();
 
-    const options = { weekday: 'long', day: 'numeric', month: 'long' };
-    document.getElementById('current-date').innerText = now.toLocaleDateString('fr-FR', options);
+    document.getElementById('current-date').innerText = today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-    const todayKey = now.toISOString().split('T')[0];
+    const todayKey = today.toISOString().split('T')[0];
     let trackingData = JSON.parse(localStorage.getItem('prepa_tracking')) || {};
+    
     if (!trackingData[todayKey]) {
         trackingData[todayKey] = { completed: [] };
     }
 
     function checkAutomaticFailure() {
-        if (now.getHours() >= 21) {
-            const todayProg = weeklyProgram[currentDayOfWeek];
+        const todayProg = weeklyProgram[today.getDay()];
+        if (today.getHours() >= 21) {
             if (todayProg.mandatory.length > 0 && trackingData[todayKey].completed.length < todayProg.mandatory.length) {
                 if (!trackingData[todayKey].status) trackingData[todayKey].status = "fail";
             }
@@ -259,11 +310,11 @@
     }
     checkAutomaticFailure();
 
-    const todayProg = weeklyProgram[currentDayOfWeek];
-    const container = document.getElementById('tasks-container');
+    const todayProg = weeklyProgram[today.getDay()];
+    const tasksContainer = document.getElementById('tasks-container');
 
     if (todayProg.mandatory.length === 0 && !todayProg.activity) {
-        container.innerHTML = `<div class="card" style="border-left-color: #444"><div class="card-info"><h3>Repos total</h3><p>Profite pour bien récupérer !</p></div></div>`;
+        tasksContainer.innerHTML = `<div class="card" style="border-left-color: #333"><div class="card-info"><h3>Repos aujourd'hui</h3><p>Relâche la pression et récupère !</p></div></div>`;
     } else {
         todayProg.mandatory.forEach(type => {
             const isDone = trackingData[todayKey].completed.includes(type);
@@ -272,13 +323,13 @@
             card.innerHTML = `
                 <div class="card-info">
                     <h3>${type}</h3>
-                    <p>Séance obligatoire avec rappels actifs</p>
+                    <p>Séance obligatoire du jour</p>
                 </div>
                 <button class="checkbox-btn" onclick="toggleTask('${type}', this)">
                     <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" stroke="white" fill="none"/></svg>
                 </button>
             `;
-            container.appendChild(card);
+            tasksContainer.appendChild(card);
         });
 
         if (todayProg.activity) {
@@ -287,37 +338,38 @@
             card.className = `card activity ${isActivityDone ? 'completed' : ''}`;
             card.innerHTML = `
                 <div class="card-info">
-                    <h3>${todayProg.activity}</h3>
-                    <p>Optionnel (Foot/Vélo...)</p>
+                    <h3>${todayProg.activity} libre</h3>
+                    <p>Optionnel (Foot entre amis, etc.)</p>
                 </div>
                 <button class="checkbox-btn" onclick="toggleActivity(this)">
                     <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" stroke="white" fill="none"/></svg>
                 </button>
             `;
-            container.appendChild(card);
+            tasksContainer.appendChild(card);
         }
     }
 
     window.toggleTask = function(type, btn) {
         const card = btn.parentElement;
+        card.classList.toggle('completed');
+        
         if (card.classList.contains('completed')) {
-            card.classList.remove('completed');
-            trackingData[todayKey].completed = trackingData[todayKey].completed.filter(t => t !== type);
-        } else {
-            card.classList.add('completed');
             if (!trackingData[todayKey].completed.includes(type)) trackingData[todayKey].completed.push(type);
+        } else {
+            trackingData[todayKey].completed = trackingData[todayKey].completed.filter(t => t !== type);
         }
         
         if (trackingData[todayKey].completed.length === todayProg.mandatory.length) {
             trackingData[todayKey].status = "success";
-        } else if (now.getHours() >= 21) {
+        } else if (today.getHours() >= 21) {
             trackingData[todayKey].status = "fail";
         } else {
             delete trackingData[todayKey].status;
         }
         
         localStorage.setItem('prepa_tracking', JSON.stringify(trackingData));
-        buildCalendar();
+        buildCalendarGrid();
+        syncReminders();
     };
 
     window.toggleActivity = function(btn) {
@@ -327,69 +379,130 @@
         localStorage.setItem('prepa_tracking', JSON.stringify(trackingData));
     };
 
-    // Construction du calendrier avec alignement parfait et pop-up d'informations
-    function buildCalendar() {
-        const grid = document.getElementById('calendar-grid');
-        grid.innerHTML = "";
+    window.changeMonth = function(direction) {
+        currentViewMonth += direction;
+        if (currentViewMonth > 11) {
+            currentViewMonth = 0;
+            currentViewYear++;
+        } else if (currentViewMonth < 0) {
+            currentViewMonth = 11;
+            currentViewYear--;
+        }
+        buildCalendarGrid();
+    };
 
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(now.getDate() - i);
-            const k = d.toISOString().split('T')[0];
-            const dayOfWeek = d.getDay();
+    function buildCalendarGrid() {
+        const gridTarget = document.getElementById('calendar-grid-target');
+        document.getElementById('calendar-month-year').innerText = `${monthNames[currentViewMonth]} ${currentViewYear}`;
+        gridTarget.innerHTML = "";
+
+        const customDayOrder = [1, 2, 3, 4, 5, 6, 0];
+        customDayOrder.forEach(dNum => {
+            const lbl = document.createElement('div');
+            lbl.className = 'weekday-label';
+            lbl.innerText = dayNames[dNum];
+            gridTarget.appendChild(lbl);
+        });
+
+        const firstDayInstance = new Date(currentViewYear, currentViewMonth, 1);
+        let firstDayIndex = firstDayInstance.getDay() - 1; 
+        if (firstDayIndex === -1) firstDayIndex = 6;
+
+        const totalDaysInMonth = new Date(currentViewYear, currentViewMonth + 1, 0).getDate();
+
+        for (let i = 0; i < firstDayIndex; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'day-cell empty';
+            gridTarget.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= totalDaysInMonth; day++) {
+            const currentLoopDate = new Date(currentViewYear, currentViewMonth, day);
+            const loopKey = currentLoopDate.toISOString().split('T')[0];
+            const dayOfWeek = currentLoopDate.getDay();
             
             const cell = document.createElement('div');
-            cell.className = 'calendar-cell';
+            cell.className = 'day-cell';
             
-            const label = document.createElement('div');
-            label.className = 'calendar-day-label';
-            label.innerText = dayNames[dayOfWeek];
-            
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'calendar-day';
-            dayDiv.innerText = d.getDate();
-
-            if (i === 0) dayDiv.classList.add('current');
+            const numDiv = document.createElement('div');
+            numDiv.className = 'day-num';
+            numDiv.innerText = day;
+            cell.appendChild(numDiv);
 
             const dayProg = weeklyProgram[dayOfWeek];
             const hasWorkout = dayProg.mandatory.length > 0;
+            
+            const workoutDiv = document.createElement('div');
+            workoutDiv.className = 'day-workout';
+            workoutDiv.innerText = hasWorkout ? dayProg.mandatory.join('+') : "Repos";
+            cell.appendChild(workoutDiv);
 
-            if (!hasWorkout) {
-                dayDiv.classList.add('repos');
-            } else if (trackingData[k]) {
-                if (trackingData[k].status === "success") dayDiv.classList.add('success');
-                if (trackingData[k].status === "fail") dayDiv.classList.add('fail');
+            if (loopKey === todayKey) {
+                cell.classList.add('today');
             }
 
-            // Clic interactif pour inspecter le programme du jour choisi
-            cell.onclick = () => {
-                const progText = hasWorkout ? dayProg.mandatory.join(' + ') : "Repos total";
-                const actText = dayProg.activity ? ` (+ ${dayProg.activity})` : "";
-                let stateText = "Non effectué";
-                
-                if (!hasWorkout) stateText = "Détente !";
-                else if (trackingData[k] && trackingData[k].status === "success") stateText = "Validé ! 💪";
-                else if (trackingData[k] && trackingData[k].status === "fail") stateText = "Manqué ❌";
+            if (!hasWorkout) {
+                cell.classList.add('repos');
+            } else if (trackingData[loopKey]) {
+                if (trackingData[loopKey].status === "success") cell.classList.add('success');
+                else if (trackingData[loopKey].status === "fail") cell.classList.add('fail');
+            } else if (currentLoopDate < today) {
+                cell.classList.add('fail');
+            }
 
-                alert(`📅 ${dayNames[dayOfWeek]} ${d.getDate()} Juin\n\n🎯 Programme : ${progText}${actText}\n📊 Statut : ${stateText}`);
-            };
+            if (hasWorkout) {
+                cell.onclick = () => {
+                    if (!trackingData[loopKey]) trackingData[loopKey] = { completed: [] };
+                    
+                    if (trackingData[loopKey].status === "success") {
+                        trackingData[loopKey].status = "fail";
+                    } else if (trackingData[loopKey].status === "fail") {
+                        delete trackingData[loopKey].status;
+                        trackingData[loopKey].completed = [];
+                    } else {
+                        trackingData[loopKey].status = "success";
+                        trackingData[loopKey].completed = [...dayProg.mandatory];
+                    }
 
-            cell.appendChild(label);
-            cell.appendChild(dayDiv);
-            grid.appendChild(cell);
+                    localStorage.setItem('prepa_tracking', JSON.stringify(trackingData));
+                    if (loopKey === todayKey) {
+                        window.location.reload();
+                    } else {
+                        buildCalendarGrid();
+                    }
+                };
+            }
+
+            gridTarget.appendChild(cell);
         }
     }
-    buildCalendar();
+    buildCalendarGrid();
+
+    function syncReminders() {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            const todayState = trackingData[todayKey] || { completed: [] };
+            const isDone = todayState.status === "success";
+            navigator.serviceWorker.controller.postMessage({
+                type: 'SYNC_REMINDERS',
+                isCompleted: isDone,
+                programText: todayProg.mandatory.join(' + ')
+            });
+        }
+    }
 
     document.getElementById('enable-notif').addEventListener('click', () => {
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
                 navigator.serviceWorker.register('sw.js').then(reg => {
-                    alert("Rappels activés avec succès !");
+                    syncReminders();
+                    alert("Rappels et synchronisation activés !");
                 });
             }
         });
     });
+
+    // Synchro automatique au démarrage
+    navigator.serviceWorker.ready.then(() => { syncReminders(); });
 </script>
 </body>
 </html>
