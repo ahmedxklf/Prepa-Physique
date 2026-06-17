@@ -3,66 +3,41 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-    // Boucle de vérification temporelle toutes les 10 minutes pour éviter d'être tué par le système
-    setInterval(() => {
-        checkTimeAndNotify();
-    }, 600000); 
+    e.waitUntil(self.clients.claim());
 });
 
-function checkTimeAndNotify() {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    
-    // On ne cible que le début des heures
-    if (minutes > 15) return; 
-
-    // RÈGLE 1 : Rappel de la veille à 22h
-    if (hours === 22) {
-        const tomorrow = new Date();
-        tomorrow.setDate(now.getDate() + 1);
-        const tomorrowProg = getDayProgram(tomorrow.getDay());
+// Écoute les ordres de l'application principale pour envoyer des notifications au bon moment
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SYNC_REMINDERS') {
+        const { isCompleted, programText } = event.data;
         
-        if (tomorrowProg) {
-            self.registration.showNotification(`Prepa ${tomorrowProg.dayName}`, {
-                body: `Demain au programme : ${tomorrowProg.text}. Repose-toi bien !`,
-                icon: 'icon.png'
-            });
+        // Si la séance est faite, on annule tous les futurs rappels de la journée
+        if (isCompleted) {
+            console.log("Séance validée. Rappels désactivés pour aujourd'hui.");
+            return;
         }
-    }
 
-    // RÈGLE 2 : Boucle insistante de journée (Toutes les 2 heures entre 10h et 21h)
-    const checkHours = [10, 12, 14, 16, 18, 20];
-    if (checkHours.includes(hours)) {
-        // En arrière-plan, on demande l'état des tâches du jour à l'application
-        // Si non complété, on pousse l'alerte
-        const currentProg = getDayProgram(now.getDay());
-        if (currentProg && currentProg.mandatory.length > 0) {
+        // Sinon, on planifie l'envoi immédiat ou décalé si l'utilisateur ouvre l'application
+        const now = new Date();
+        const hours = now.getHours();
+
+        // Boucle de journée (Vérifie si on doit déclencher une alerte au moment de l'accès)
+        const checkHours = [10, 12, 14, 16, 18, 20];
+        if (checkHours.includes(hours) && hours < 21) {
             self.registration.showNotification(`Rappel Prépa Physique !`, {
-                body: `N'oublie pas ta séance de : ${currentProg.text}. Lâche rien !`,
+                body: `Tu n'as pas encore validé ton : ${programText}. Ne lâche rien !`,
                 tag: 'prepa-reminder',
-                requireInteraction: true // Reste affiché tant que tu ne cliques pas
+                requireInteraction: true
+            });
+        }
+        
+        // Alerte de la veille à 22h programmée par le système
+        if (hours === 22) {
+            self.registration.showNotification(`Prépa de demain`, {
+                body: `Pense à regarder ton programme pour être d'attaque au réveil !`,
+                tag: 'prepa-veille',
+                requireInteraction: true
             });
         }
     }
-}
-
-function getDayProgram(dayOfWeek) {
-    const progs = {
-        1: { name: "Lundi", mandatory: ["Renfo"] },
-        2: { name: "Mardi", mandatory: ["HIIT"] },
-        3: { name: "Mercredi", mandatory: ["Cardio", "Renfo"] },
-        4: { name: "Jeudi", mandatory: ["HIIT"] },
-        5: { name: "Vendredi", mandatory: ["Cardio"] },
-        6: { name: "Samedi", mandatory: ["Renfo"] },
-        0: { name: "Dimanche", mandatory: [] }
-    };
-    
-    const p = progs[dayOfWeek];
-    if (p.mandatory.length === 0) return null;
-    return {
-        dayName: p.name,
-        mandatory: p.mandatory,
-        text: p.mandatory.join(' + ')
-    };
-}
+});
