@@ -290,9 +290,17 @@
     let currentViewYear = today.getFullYear();
     let currentViewMonth = today.getMonth();
 
+    // Fonction magique pour créer une clé locale pure (sans bug de décalage horaire)
+    function getLocalKey(dateInstance) {
+        const y = dateInstance.getFullYear();
+        const m = String(dateInstance.getMonth() + 1).padStart(2, '0');
+        const d = String(dateInstance.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
     document.getElementById('current-date').innerText = today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-    const todayKey = today.toISOString().split('T')[0];
+    const todayKey = getLocalKey(today);
     let trackingData = JSON.parse(localStorage.getItem('prepa_tracking')) || {};
     
     if (!trackingData[todayKey]) {
@@ -416,9 +424,12 @@
             gridTarget.appendChild(emptyCell);
         }
 
+        // Création d'une date de comparaison calée sur minuit local
+        const midnightToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
         for (let day = 1; day <= totalDaysInMonth; day++) {
             const currentLoopDate = new Date(currentViewYear, currentViewMonth, day);
-            const loopKey = currentLoopDate.toISOString().split('T')[0];
+            const loopKey = getLocalKey(currentLoopDate);
             const dayOfWeek = currentLoopDate.getDay();
             
             const cell = document.createElement('div');
@@ -446,7 +457,7 @@
             } else if (trackingData[loopKey]) {
                 if (trackingData[loopKey].status === "success") cell.classList.add('success');
                 else if (trackingData[loopKey].status === "fail") cell.classList.add('fail');
-            } else if (currentLoopDate < today) {
+            } else if (currentLoopDate < midnightToday) {
                 cell.classList.add('fail');
             }
 
@@ -501,7 +512,6 @@
         });
     });
 
-    // Synchro automatique au démarrage
     navigator.serviceWorker.ready.then(() => { syncReminders(); });
 </script>
 </body>
