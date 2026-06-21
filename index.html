@@ -256,7 +256,7 @@
     <h1>Ma Prépa Physique</h1>
     <div class="date-sub" id="current-date">Chargement...</div>
 
-    <button class="notif-btn" id="enable-notif">🔔 Activer le système anti-harcèlement</button>
+    <button class="notif-btn" id="enable-notif">🔔 Activer le Système de Notifications</button>
 
     <div class="section-title">Objectifs du Jour</div>
     <div id="tasks-container"></div>
@@ -363,7 +363,7 @@
         
         localStorage.setItem('prepa_tracking', JSON.stringify(trackingData));
         buildCalendarGrid();
-        updateNotificationTriggers();
+        syncReminders();
     };
 
     window.toggleActivity = function(btn) {
@@ -474,14 +474,19 @@
     }
     buildCalendarGrid();
 
-    // LE MOTEUR DE TRICK : Envoie l'état exact au Service Worker pour planifier/effacer les alertes
-    function updateNotificationTriggers() {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            const isDone = trackingData[todayKey].status === "success";
-            navigator.serviceWorker.controller.postMessage({
-                type: 'UPDATE_TRIGGERS',
-                isCompleted: isDone,
-                programText: todayProg.mandatory.join(' + ')
+    // Correction de liaison critique : on force la détection immédiate du Service Worker actif
+    function syncReminders() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(reg => {
+                if (reg.active) {
+                    const todayState = trackingData[todayKey] || { completed: [] };
+                    const isDone = todayState.status === "success";
+                    reg.active.postMessage({
+                        type: 'SYNC_REMINDERS',
+                        isCompleted: isDone,
+                        programText: todayProg.mandatory.join(' + ')
+                    });
+                }
             });
         }
     }
@@ -490,14 +495,16 @@
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
                 navigator.serviceWorker.register('sw.js').then(() => {
-                    updateNotificationTriggers();
-                    alert("Système activé. Tu ne seras plus JAMAIS harcelé si ta séance est cochée !");
+                    setTimeout(syncReminders, 500); // Laisse le temps au script de s'éveiller
+                    alert("Système activé avec succès !");
                 });
+            } else {
+                alert("Tu dois autoriser les notifications pour que le bouton fonctionne.");
             }
         });
     });
 
-    navigator.serviceWorker.ready.then(() => { updateNotificationTriggers(); });
+    navigator.serviceWorker.ready.then(() => { syncReminders(); });
 </script>
 </body>
 </html>
