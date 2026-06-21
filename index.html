@@ -474,7 +474,6 @@
     }
     buildCalendarGrid();
 
-    // Correction de liaison critique : on force la détection immédiate du Service Worker actif
     function syncReminders() {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(reg => {
@@ -492,16 +491,13 @@
     }
 
     document.getElementById('enable-notif').addEventListener('click', () => {
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                navigator.serviceWorker.register('sw.js').then(() => {
-                    setTimeout(syncReminders, 500); // Laisse le temps au script de s'éveiller
-                    alert("Système activé avec succès !");
-                });
-            } else {
-                alert("Tu dois autoriser les notifications pour que le bouton fonctionne.");
-            }
-        });
+        Notification.requestPermission();
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => {
+                setTimeout(syncReminders, 300);
+                alert("Système activé avec succès !");
+            });
+        }
     });
 
     navigator.serviceWorker.ready.then(() => { syncReminders(); });
